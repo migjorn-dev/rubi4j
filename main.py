@@ -1,4 +1,8 @@
-# This is a sample Python script.
+# rubi4j
+
+# to stack cube positions for traversation
+import queue
+
 class minicube:
     ''' Minicube F(Front) U(Up) R(Right) B(Back) L(Left) D(Down)
         DD                 00 01
@@ -12,6 +16,7 @@ class minicube:
          colors 0 1 2 3 4 5
          side order top, left, front, right, rear, bottom
      '''
+    corner_color_minimum = 3    # orientation corner is the one with the three lowest corner colors
     perm = [ 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
              3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5 ]
 #    perm = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
@@ -26,6 +31,13 @@ class minicube:
         print(f'{self.perm[10]:2}.{self.perm[11]:2}.{self.perm[14]:2}.{self.perm[15]:2}.{self.perm[18]:2}.{self.perm[19]:2}')
         print(f'  .  .{self.perm[20]:2}.{self.perm[21]:2}.  .  ')
         print(f'  .  .{self.perm[22]:2}.{self.perm[23]:2}.  .  ')
+
+
+    def perm_display_short(self):
+        short = ""
+        for i in range(23):
+            short = short+str(self.perm[i])
+        return short
 
     def rotate_up_clockwise_90(self):
         '''
@@ -220,14 +232,12 @@ class minicube:
         # check all corner pieces
         while(i <= 8):
             sum = self.corner_sum()
-            if (sum != 3):
+            if (sum != self.corner_color_minimum):
                 self.rotate_cube_clockwise_90()
             else:
-                print( "Corner found!" )
                 break
             i += 1
             if (i == 5): # 0-1-2 corner is not in top layer
-                print( "ff " )
                 self.flip_forward()
                 self.flip_forward()
         # bring color 0 on position 12
@@ -243,30 +253,69 @@ class minicube:
             self.rotate_cube_clockwise_90()
 
 
-print('Hello rubi4j!')
+    def rotate_right_clockwise_90(self):
+        self.flip_left()
+        self.rotate_up_clockwise_90()
+        self.flip_left()
+        self.flip_left()
+        self.flip_left()
+
+    def rotate_front_clockwise_90(self):
+        self.flip_forward()
+        self.flip_forward()
+        self.flip_forward()
+        self.rotate_up_clockwise_90
+        self.flip_forward()
+
+    def rotate_down_clockwise_90(self):
+        self.flip_forward()
+        self.flip_forward()
+        self.rotate_up_clockwise_90()
+        self.flip_forward()
+        self.flip_forward()
+
+
+    def init_via_str(self,perm_str):
+        for i in range(len(perm_str)):
+            self.perm[i] = int(perm_str[i])
+
+
+print('# Hello rubi4j!')
+cube_perm_queue = queue.Queue()
 cube = minicube()
-cube.rotate_up_clockwise_90()
-#cube.rotate_up_clockwise_90()
-#cube.rotate_up_clockwise_90()
 
-cube.flip_left()
-#cube.flip_left()
-#cube.flip_left()
+perm_father = cube.perm_display_short()
+cube_perm_queue.put(perm_father)
+cube_count = 0
+step_count = 0
 
-cube.flip_forward()
-#cube.flip_forward()
-#cube.flip_forward()
+while not cube_perm_queue.empty():
+    perm_father = cube_perm_queue.get()
+    cube_count += 1
+    step_count += 1
+#    print(f'# perm_father ={perm_father}')
+    cube.init_via_str(perm_father)
+    cube.rotate_up_clockwise_90()
+    perm_son = str( cube.perm_display_short() )
+#    print(f'# perm_son (up   ) = {perm_son}' )
+    cube_perm_queue.put( perm_son )
 
-cube.rotate_cube_clockwise_90()
-#cube.rotate_cube_clockwise_90()
-#cube.rotate_cube_clockwise_90()
+    cube.init_via_str(perm_father)
+    cube.rotate_right_clockwise_90()
+    perm_son = str( cube.perm_display_short() )
+#    print(f'# perm_son (right) = {perm_son}')
+    cube_perm_queue.put( perm_son )
 
+    cube.init_via_str(perm_father)
+    cube.rotate_front_clockwise_90()
+    perm_son = str( cube.perm_display_short() )
+#    print(f'# perm_son (front) = {perm_son}')
+    cube_perm_queue.put( perm_son )
 
-print(cube.orientate_cube())
-cube.perm_display()
+    if step_count == 10000:
+        print(f'# cube_count = {cube_count}')
+        print(f'# perm_father = {perm_father}')
+        step_count = 0
 
-#cube.perm_display()
-#cube.rotate_cube_clockwise_90()
 
 print("finished")
-print(cube.corner_sum())
