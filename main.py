@@ -2,320 +2,77 @@
 
 # to stack cube positions for traversation
 import queue
+import rubi4j_minicube
+import rubi4j_neo4j
 
-class minicube:
-    ''' Minicube F(Front) U(Up) R(Right) B(Back) L(Left) D(Down)
-        DD                 00 01
-        DD                 02 03
-        BB                 04 05
-        BB                 06 07
-     LL UU RR       08 09  12 13 16 17
-     LL UU RR       10 11  14 15 18 19
-        FF                 20 21
-        FF                 22 23
-         colors 0 1 2 3 4 5
-         side order top, left, front, right, rear, bottom
-     '''
-    corner_color_minimum = 3    # orientation corner is the one with the three lowest corner colors
-    perm = [ 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
-             3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5 ]
-#    perm = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-#           12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+print('# Welcome to rubi4j!')
 
-    def perm_display(self):
-        print(f'  .  .{self.perm[0]:2}.{self.perm[1]:2}.  .  ')
-        print(f'  .  .{self.perm[2]:2}.{self.perm[3]:2}.  .  ')
-        print(f'  .  .{self.perm[4]:2}.{self.perm[5]:2}.  .  ')
-        print(f'  .  .{self.perm[6]:2}.{self.perm[7]:2}.  .  ')
-        print(f'{self.perm[8]:2}.{self.perm[9]:2}.{self.perm[12]:2}.{self.perm[13]:2}.{self.perm[16]:2}.{self.perm[17]:2}')
-        print(f'{self.perm[10]:2}.{self.perm[11]:2}.{self.perm[14]:2}.{self.perm[15]:2}.{self.perm[18]:2}.{self.perm[19]:2}')
-        print(f'  .  .{self.perm[20]:2}.{self.perm[21]:2}.  .  ')
-        print(f'  .  .{self.perm[22]:2}.{self.perm[23]:2}.  .  ')
-
-
-    def perm_display_short(self):
-        short = ""
-        for i in range(23):
-            short = short+str(self.perm[i])
-        return short
-
-    def rotate_up_clockwise_90(self):
-        '''
-        DD                 00 01
-        DD                 02 03
-        BB                 04 05
-        BB                 06 07
-     LL UU RR       08 09  12 13 16 17
-     LL UU RR       10 11  14 15 18 19
-        FF                 20 21
-        FF
-        '''
-        # UP
-        tmp = self.perm[12]
-        self.perm[12] = self.perm[14]
-        self.perm[14] = self.perm[15]
-        self.perm[15] = self.perm[13]
-        self.perm[13] = tmp
-        # top layer sides
-        tmp = self.perm[6]
-        self.perm[6] = self.perm[11]
-        self.perm[11] = self.perm[21]
-        self.perm[21] = self.perm[16]
-        self.perm[16] = tmp
-        #
-        tmp = self.perm[7]
-        self.perm[7] = self.perm[9]
-        self.perm[9] = self.perm[20]
-        self.perm[20] = self.perm[18]
-        self.perm[18] = tmp
-
-
-    def flip_forward(self):
-        '''
-        DD                 00 01
-        DD                 02 03
-        BB                 04 05
-        BB                 06 07
-     LL UU RR       08 09  12 13 16 17
-     LL UU RR       10 11  14 15 18 19
-        FF                 20 21
-        FF                 22 23
-        '''
-        # store down
-        tmp1 = self.perm[0]
-        tmp2 = self.perm[1]
-        tmp3 = self.perm[2]
-        tmp4 = self.perm[3]
-        # FRONT -> DOWN
-        self.perm[0] = self.perm[20]
-        self.perm[1] = self.perm[21]
-        self.perm[2] = self.perm[22]
-        self.perm[3] = self.perm[23]
-        # UP -> FRONT
-        self.perm[20] = self.perm[12]
-        self.perm[21] = self.perm[13]
-        self.perm[22] = self.perm[14]
-        self.perm[23] = self.perm[15]
-        # BACK -> UP
-        self.perm[12] = self.perm[4]
-        self.perm[13] = self.perm[5]
-        self.perm[14] = self.perm[6]
-        self.perm[15] = self.perm[7]
-        # stored DOWN -> BACK
-        self.perm[4] = tmp1
-        self.perm[5] = tmp2
-        self.perm[6] = tmp3
-        self.perm[7] = tmp4
-        # rotate LEFT
-        tmp           = self.perm[8]
-        self.perm[8]  = self.perm[10]
-        self.perm[10] = self.perm[11]
-        self.perm[11] = self.perm[9]
-        self.perm[9]  = tmp
-        # rotate RIGHT
-        tmp           = self.perm[16]
-        self.perm[16] = self.perm[17]
-        self.perm[17] = self.perm[19]
-        self.perm[19] = self.perm[18]
-        self.perm[18] = tmp
-
-
-    def flip_left(self):
-        '''
-        DD                 00 01
-        DD                 02 03
-        BB                 04 05
-        BB                 06 07
-     LL UU RR       08 09  12 13 16 17
-     LL UU RR       10 11  14 15 18 19
-        FF                 20 21
-        FF                 22 23
-        '''
-        # store UP
-        tmp1 = self.perm[12]
-        tmp2 = self.perm[13]
-        tmp3 = self.perm[14]
-        tmp4 = self.perm[15]
-        # RIGHT -> UP
-        self.perm[12] = self.perm[16]
-        self.perm[13] = self.perm[17]
-        self.perm[14] = self.perm[18]
-        self.perm[15] = self.perm[19]
-        # DOWN -> RIGHT
-        self.perm[16] = self.perm[3]
-        self.perm[17] = self.perm[2]
-        self.perm[18] = self.perm[1]
-        self.perm[19] = self.perm[0]
-        # LEFT -> DOWN
-        self.perm[0] = self.perm[11]
-        self.perm[1] = self.perm[10]
-        self.perm[2] = self.perm[9]
-        self.perm[3] = self.perm[8]
-        # UP -> LEFT
-        self.perm[8]  = tmp1
-        self.perm[9]  = tmp2
-        self.perm[10] = tmp3
-        self.perm[11] = tmp4
-        # rotate FRONT
-        tmp = self.perm[20]
-        self.perm[20] = self.perm[21]
-        self.perm[21] = self.perm[23]
-        self.perm[23] = self.perm[22]
-        self.perm[22] = tmp
-        # rotate BACK
-        tmp = self.perm[6]
-        self.perm[6] = self.perm[7]
-        self.perm[7] = self.perm[5]
-        self.perm[5] = self.perm[4]
-        self.perm[4] = tmp
-
-
-    def rotate_cube_clockwise_90(self):
-        '''
-        rotate cube clockwise looking at UP surface
-        DD                 00 01
-        DD                 02 03
-        BB                 04 05
-        BB                 06 07
-     LL UU RR       08 09  12 13 16 17
-     LL UU RR       10 11  14 15 18 19
-        FF                 20 21
-        FF                 22 23
-        '''
-        # store BACK
-        tmp1 = self.perm[4]
-        tmp2 = self.perm[5]
-        tmp3 = self.perm[6]
-        tmp4 = self.perm[7]
-        # LEFT -> BACK
-        self.perm[4] = self.perm[10]
-        self.perm[5] = self.perm[8]
-        self.perm[6] = self.perm[11]
-        self.perm[7] = self.perm[9]
-        # FRONT -> LEFT
-        self.perm[8]  = self.perm[22]
-        self.perm[9]  = self.perm[20]
-        self.perm[10] = self.perm[23]
-        self.perm[11] = self.perm[21]
-        # RIGHT -> FRONT
-        self.perm[20]  = self.perm[18]
-        self.perm[21]  = self.perm[16]
-        self.perm[22] = self.perm[19]
-        self.perm[23] = self.perm[17]
-        # BACK (stored) -> RIGHT
-        self.perm[16]  = tmp3
-        self.perm[17]  = tmp1
-        self.perm[18] =  tmp4
-        self.perm[19] =  tmp2
-        # rotate UP
-        tmp = self.perm[12]
-        self.perm[12] = self.perm[14]
-        self.perm[14] = self.perm[15]
-        self.perm[15] = self.perm[13]
-        self.perm[13] = tmp
-        # rotate
-        tmp = self.perm[2]
-        self.perm[2] = self.perm[0]
-        self.perm[0] = self.perm[1]
-        self.perm[1] = self.perm[3]
-        self.perm[3] = tmp
-
-
-    def corner_sum(self):
-        # return color sum of corner 6-9-12
-        return self.perm[6] + self.perm[9] + self.perm[12]
-
-
-    def orientate_cube(self):
-        # bring 0-1-2 colored corner on position 6-9-12
-        i = 1
-        # check all corner pieces
-        while(i <= 8):
-            sum = self.corner_sum()
-            if (sum != self.corner_color_minimum):
-                self.rotate_cube_clockwise_90()
-            else:
-                break
-            i += 1
-            if (i == 5): # 0-1-2 corner is not in top layer
-                self.flip_forward()
-                self.flip_forward()
-        # bring color 0 on position 12
-        if self.perm[6] == 0:
-            self.flip_forward()
-            self.rotate_cube_clockwise_90()
-        if self.perm[9] == 0:
-            self.flip_left()
-            self.flip_left()
-            self.flip_left()
-            self.rotate_cube_clockwise_90()
-            self.rotate_cube_clockwise_90()
-            self.rotate_cube_clockwise_90()
-
-
-    def rotate_right_clockwise_90(self):
-        self.flip_left()
-        self.rotate_up_clockwise_90()
-        self.flip_left()
-        self.flip_left()
-        self.flip_left()
-
-    def rotate_front_clockwise_90(self):
-        self.flip_forward()
-        self.flip_forward()
-        self.flip_forward()
-        self.rotate_up_clockwise_90
-        self.flip_forward()
-
-    def rotate_down_clockwise_90(self):
-        self.flip_forward()
-        self.flip_forward()
-        self.rotate_up_clockwise_90()
-        self.flip_forward()
-        self.flip_forward()
-
-
-    def init_via_str(self,perm_str):
-        for i in range(len(perm_str)):
-            self.perm[i] = int(perm_str[i])
-
-
-print('# Hello rubi4j!')
+print("# initialize queue, minicube, counters and database connection")
 cube_perm_queue = queue.Queue()
-cube = minicube()
-
+cube = rubi4j_minicube.minicube()
 perm_father = cube.perm_display_short()
 cube_perm_queue.put(perm_father)
 cube_count = 0
 step_count = 0
+db_feed = rubi4j_neo4j.minicube_neo4j("bolt://localhost:7687", "neo4j", "rubi4j")
+db_feed.permutation_constraint()
+db_feed.add_permutation( perm_father )
 
+# three sides to move
+rotation_list = [ "UP", "FRONT", "RIGHT"]
+
+cube_count += 1
+step_count += 1
 while not cube_perm_queue.empty():
+    # fetch next permutation
     perm_father = cube_perm_queue.get()
-    cube_count += 1
+    # count steps
     step_count += 1
-#    print(f'# perm_father ={perm_father}')
-    cube.init_via_str(perm_father)
-    cube.rotate_up_clockwise_90()
-    perm_son = str( cube.perm_display_short() )
-#    print(f'# perm_son (up   ) = {perm_son}' )
-    cube_perm_queue.put( perm_son )
 
-    cube.init_via_str(perm_father)
-    cube.rotate_right_clockwise_90()
-    perm_son = str( cube.perm_display_short() )
-#    print(f'# perm_son (right) = {perm_son}')
-    cube_perm_queue.put( perm_son )
+    # decide if there is something to do
+    children = db_feed.get_number_of_children( perm_father )
+    if children == 3:
+        # processed node, skip to next permutation
+        continue
+    if children == -1:
+        # cube is not in database
+        db_feed.add_permutation( perm_father )
+        cube_count += 1
+    if children == 0:
+        # new cube, three sides to move
+        for rotation in rotation_list:
+            # load permutation into minicube
+            cube.init_via_str(perm_father)
+            if rotation == "UP":
+                cube.rotate_up_clockwise_90()
+                cube_side = "U"
+            if rotation == "FRONT":
+                cube.rotate_front_clockwise_90()
+                cube_side = "F"
+            if rotation == "RIGHT":
+                cube.rotate_right_clockwise_90()
+                cube_side = "R"
+            # store new permutation as son
+            perm_son = str( cube.perm_display_short() )
+            # increase children in father
+            db_feed.increase_permutation_children( perm_father )
+            # check if cube exists and queue if not
+            children = db_feed.get_number_of_children( perm_son )
+            if children == -1:
+                # insert son into database
+                db_feed.add_permutation( perm_son )
+                cube_perm_queue.put( perm_son )
+                cube_count += 1
+            # add relation
+            db_feed.add_father_son_relation( perm_father, perm_son, cube_side )
 
-    cube.init_via_str(perm_father)
-    cube.rotate_front_clockwise_90()
-    perm_son = str( cube.perm_display_short() )
-#    print(f'# perm_son (front) = {perm_son}')
-    cube_perm_queue.put( perm_son )
-
-    if step_count == 10000:
+    if step_count == 100:
         print(f'# cube_count = {cube_count}')
         print(f'# perm_father = {perm_father}')
         step_count = 0
+        break
 
 
-print("finished")
+print('# close database connection')
+db_feed.close()
+print("# finished")
