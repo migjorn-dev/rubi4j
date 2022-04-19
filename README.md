@@ -7,9 +7,11 @@ Traversing through the Minicube via Python.
 Graph Database Engine will be neo4j.
 
 
-main.py            Python Code traversing through Minicube Permutations
-run-docker.sh      Start Docker Container for neo4j
+LICENSE.txt        the license file
+main.py            Python Code traversing through Minicube Permutations - output to rubi4j.bulk
+run-docker.sh      start Docker Container for neo4j
+rubi4j_minicube.py Module to handle Minicube as an object
 
 
 # Version
-3.4.2022
+19.4.2022
