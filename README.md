@@ -11,7 +11,8 @@ LICENSE.txt        the license file
 main.py            Python Code traversing through Minicube Permutations - output to rubi4j.bulk
 run-docker.sh      start Docker Container for neo4j
 rubi4j_minicube.py Module to handle Minicube as an object
+loadcsv.py         import bulk data via Cypher LOAD CSV command
 
 
 # Version
-19.4.2022
+20.4.2022

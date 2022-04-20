@@ -1,8 +1,9 @@
 # rubi4j minicube
-# Version 1.1 (19.4.2022)
-# Author: Markus Luft
+# Version 1.2 (20.4.2022)
+# Author: migjorn-dev
 #
 # define python class minicube to handle 2x2x2 rubiks cube
+# to speed things up there is a explicite routine for rotating sides front, up, right
 #
 # minicube is stored in the following way and with following side labels
 # F(Front) U(Up) R(Right) B(Back) L(Left) D(Down)
