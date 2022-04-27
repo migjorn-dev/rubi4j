@@ -1,0 +1,14 @@
+copy bulkfiles from sample directory to neo4j import
+
+LOAD CSV FROM 'file:///rubi4j-permutation.bulk' AS line
+CREATE (a:minicube {permutation: line[0]})
+RETURN count(a)
+
+LOAD CSV FROM 'file:///rubi4j-relation.bulk'AS row 
+MERGE (p1:minicube {permutation: row[0]}) 
+MERGE (p2:minicube {permutation: row[2]}) 
+WITH p1, p2, row
+CALL apoc.create.relationship(p1, row[1], {}, p2) YIELD rel 
+RETURN count(rel)
+
+MATCH(n) RETURN n
